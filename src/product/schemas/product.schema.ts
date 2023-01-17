@@ -16,10 +16,7 @@ export class Product {
   @Prop()
   defaultPrice: number;
 
-  @Prop()
-  categories: string;
-
-  @Prop({type: mongoose.Schema.Types.ObjectId, ref: "ProductOptionCategory"})
+  @Prop({type: [{type: mongoose.Schema.Types.ObjectId, ref: "ProductOptionCategory"}]})
   options: ProductOptionCategory[]
 
 }

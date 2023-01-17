@@ -3,16 +3,16 @@ import { HydratedDocument } from 'mongoose';
 import mongoose from "mongoose";
 import { ProductOptionCategory } from "./productOptionCategory.schema";
 
-export type ProductOptionDocument = HydratedDocument<ProductOption>;
+export type ProductOptionItemDocument = HydratedDocument<ProductOptionItem>;
 
 
 @Schema()
-export class ProductOption {
+export class ProductOptionItem {
   @Prop()
   title: string;
 
-  @Prop({type: [{type: mongoose.Schema.Types.ObjectId, ref: 'ProductOptionCategory'}]})
-  options: ProductOptionCategory;
+  @Prop({type: mongoose.Schema.Types.ObjectId, ref: 'ProductOptionCategory'})
+  optionCategory: ProductOptionCategory;
 
   @Prop()
   price: number
@@ -24,5 +24,5 @@ export class ProductOption {
   image: string
 }
 
-export const ProductOptionSchema = SchemaFactory.createForClass(ProductOption);
+export const ProductOptionItemSchema = SchemaFactory.createForClass(ProductOptionItem);
 

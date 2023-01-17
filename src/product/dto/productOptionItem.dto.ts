@@ -1,9 +1,10 @@
 import { ObjectId } from "mongoose";
 
 
-export class ProductOptionDto {
+export class ProductOptionItemDto {
   title: string
   price: number
   preview: string
-  image: string
+  // image: string
+  optionCategory: ObjectId
 }
