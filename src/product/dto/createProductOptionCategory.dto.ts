@@ -1,6 +1,7 @@
 import { ObjectId } from "mongoose";
 
-export class ProductOptionCategoryDto {
+export class CreateProductOptionCategoryDto {
   title: string
+  productArticul: string
   product: ObjectId
 }

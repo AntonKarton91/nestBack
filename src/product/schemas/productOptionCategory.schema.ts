@@ -9,16 +9,17 @@ export type ProductOptionCategoryDocument = HydratedDocument<ProductOptionCatego
 
 @Schema()
 export class ProductOptionCategory {
-  @Prop()
+  @Prop({ required: true })
   title: string;
 
-  @Prop({type: [{type: mongoose.Schema.Types.ObjectId, ref: 'ProductOptionItem'}]})
-  options: ProductOptionItem[];
+  @Prop({ required: true })
+  productArticul: string;
 
   @Prop({type: mongoose.Schema.Types.ObjectId, ref: 'Product'})
   product: Product;
 
-
+  @Prop({type: [{type: mongoose.Schema.Types.ObjectId, ref: 'ProductOptionItem'}]})
+  optionItems: ProductOptionItem[];
 }
 
 export const ProductOptionCategorySchema = SchemaFactory.createForClass(ProductOptionCategory);

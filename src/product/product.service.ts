@@ -1,12 +1,13 @@
 import mongoose, { Model, Types } from "mongoose";
-import { Injectable } from '@nestjs/common';
+import {HttpException, HttpStatus, Injectable} from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
-import { ProductDto } from "./dto/product.dto";
 import { Product, ProductDocument } from "./schemas/product.schema";
-import {ProductOptionCategoryDto} from "./dto/productOptionCategory.dto";
 import {ProductOptionCategory, ProductOptionCategoryDocument} from "./schemas/productOptionCategory.schema";
 import {ProductOptionItem, ProductOptionItemDocument} from "./schemas/productOptionItem.schema";
-import {ProductOptionItemDto} from "./dto/productOptionItem.dto";
+import {FileService, FileType} from "../file/file.service";
+import {CreateProductDto} from "./dto/createProduct.dto";
+import {CreateProductOptionCategoryDto} from "./dto/createProductOptionCategory.dto";
+import {CreateProductOptionItemDto} from "./dto/createProductOptionItem.dto";
 
 
 @Injectable()
@@ -15,9 +16,11 @@ export class ProductService {
       @InjectModel(Product.name) private productModel: Model<ProductDocument>,
       @InjectModel(ProductOptionCategory.name) private productOptionCategory: Model<ProductOptionCategoryDocument>,
       @InjectModel(ProductOptionItem.name) private productOptionItem: Model<ProductOptionItemDocument>,
-  ) {}
+      private fileService: FileService
+  ) {
+  }
 
-  async create(dto: ProductDto): Promise<Product> {
+  async create(dto: CreateProductDto): Promise<Product> {
     const createdProduct = await this.productModel.create(dto);
     return createdProduct;
   }
@@ -27,24 +30,45 @@ export class ProductService {
   }
 
   async findById(id: mongoose.Schema.Types.ObjectId): Promise<Product> | null {
-    return this.productModel.findById(id).populate("options").populate("options")
+    const product = this.productModel.findById(id).populate({
+      path: "optionCategories",
+      populate: {
+        path: "optionItems"
+      }
+    })
+    return product
   }
 
-  async createOptionCat(dto: ProductOptionCategoryDto): Promise<ProductOptionCategory> {
-    const product = await this.productModel.findById(dto.product)
-    const createdCat = await this.productOptionCategory.create({...dto});
-    // @ts-ignore
-    product.options.push(createdCat._id)
+  async createOptionCat(dto: CreateProductOptionCategoryDto): Promise<ProductOptionCategory> {
+    const product = await this.productModel.findById(dto.product);
+    if (!product) {
+      throw new HttpException('Нет такого продукта', HttpStatus.BAD_REQUEST)
+    }
+    const optionCategory = await this.productOptionCategory.create({...dto})
+    //@ts-ignore
+    product.optionCategories.push(optionCategory._id)
     await product.save();
-    return createdCat
+    return optionCategory;
   }
 
-  async createOptionItem(dto: ProductOptionItemDto): Promise<ProductOptionItem> {
-    const category = await this.productOptionCategory.findById(dto.optionCategory)
-    const createdOption = await this.productOptionItem.create({...dto});
-    // @ts-ignore
-    category.options.push(createdOption._id)
-    await category.save();
+  async createOptionItem(dto: CreateProductOptionItemDto, image, preview) {
+    const {productArticul, title} = dto
+    const img = this.fileService.createFile(FileType.Image, image, productArticul, title)
+    const dir = img[1]
+    const prev = this.fileService.createFile(FileType.Preview, preview, productArticul, title, dir)
+    const createdOption = await this.productOptionItem.create({...dto, preview: prev[0], image: img[0]});
+
+    const optionCategory = await this.productOptionCategory.findById(dto.optionCategoryID)
+    if (!optionCategory) {
+      throw new HttpException('Нет такой категории', HttpStatus.BAD_REQUEST)
+    }
+    //@ts-ignore
+    optionCategory.optionItems.push(createdOption._id)
+    await optionCategory.save();
+
     return createdOption
   }
+
+
 }
+

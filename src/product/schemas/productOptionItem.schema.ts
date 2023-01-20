@@ -1,5 +1,5 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
-import { HydratedDocument } from 'mongoose';
+import {HydratedDocument, ObjectId} from 'mongoose';
 import mongoose from "mongoose";
 import { ProductOptionCategory } from "./productOptionCategory.schema";
 
@@ -8,19 +8,22 @@ export type ProductOptionItemDocument = HydratedDocument<ProductOptionItem>;
 
 @Schema()
 export class ProductOptionItem {
-  @Prop()
+  @Prop({ required: true })
   title: string;
 
+  @Prop()
+  productArticul: string;
+
   @Prop({type: mongoose.Schema.Types.ObjectId, ref: 'ProductOptionCategory'})
-  optionCategory: ProductOptionCategory;
+  optionCategoryID: ProductOptionCategory;
 
   @Prop()
   price: number
 
-  @Prop()
+  @Prop({ required: true })
   preview: string
 
-  @Prop()
+  @Prop({ required: true })
   image: string
 }
 

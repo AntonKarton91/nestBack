@@ -5,15 +5,16 @@ import {
   Get,
   Param,
   Post,
-  Put, UploadedFile, UploadedFiles, UseInterceptors
+  Put, UploadedFiles, UseInterceptors
 } from "@nestjs/common";
-import { ProductDto } from "./dto/product.dto";
 import { ConfigService } from "@nestjs/config";
 import { ProductService } from "./product.service";
 import { ObjectId } from "mongoose";
-import {ProductOptionCategoryDto} from "./dto/productOptionCategory.dto";
-import {ProductOptionItemDto} from "./dto/productOptionItem.dto";
+
 import {FileFieldsInterceptor, FileInterceptor, FilesInterceptor} from "@nestjs/platform-express";
+import {CreateProductDto} from "./dto/createProduct.dto";
+import {CreateProductOptionCategoryDto} from "./dto/createProductOptionCategory.dto";
+import {CreateProductOptionItemDto} from "./dto/createProductOptionItem.dto";
 
 
 @Controller('/product')
@@ -24,12 +25,12 @@ export class ProductController {
   ) {}
 
   @Post()
-  createProduct(@Body() dto: ProductDto) {
+  createProduct(@Body() dto: CreateProductDto) {
     return this.productService.create(dto)
   }
 
   @Get()
-  getProduct() {
+  getAllProduct() {
     return this.productService.findAll()
   }
 
@@ -38,8 +39,9 @@ export class ProductController {
     return this.productService.findById(id)
   }
 
+
   @Put(":id")
-  updateProduct(@Param () id: ObjectId, @Body() dto: ProductDto) {
+  updateProduct(@Param () id: ObjectId, @Body() dto: CreateProductDto) {
 
   }
 
@@ -49,7 +51,7 @@ export class ProductController {
   }
 
   @Post("/optioncat")
-  createProductOptionCategory(@Body() dto: ProductOptionCategoryDto) {
+  createProductOptionCategory(@Body() dto: CreateProductOptionCategoryDto) {
     return this.productService.createOptionCat(dto)
   }
 
@@ -58,10 +60,10 @@ export class ProductController {
     { name: 'preview', maxCount: 1 },
     { name: 'image', maxCount: 1 },
   ]))
-  uploadFile(@UploadedFiles() files: { image?: Express.Multer.File[], preview?: Express.Multer.File[] }) {
-    console.log(files);
-
-    return "hello"
-    // return this.productService.createOptionItem(dto)
+  uploadFile(
+      @UploadedFiles() files: { image?: Express.Multer.File[], preview?: Express.Multer.File[] },
+      @Body () dto: CreateProductOptionItemDto) {
+    const {image, preview} = files
+    return this.productService.createOptionItem(dto, image[0], preview[0])
   }
 }

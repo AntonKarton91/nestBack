@@ -7,8 +7,11 @@ export type ProductDocument = HydratedDocument<Product>;
 
 @Schema()
 export class Product {
-  @Prop()
+  @Prop({required: true, unique: true})
   title: string;
+
+  @Prop({required: true, unique: true})
+  articul:string
 
   @Prop()
   description: string;
@@ -16,9 +19,8 @@ export class Product {
   @Prop()
   defaultPrice: number;
 
-  @Prop({type: [{type: mongoose.Schema.Types.ObjectId, ref: "ProductOptionCategory"}]})
-  options: ProductOptionCategory[]
-
+  @Prop({type: [{type: mongoose.Schema.Types.ObjectId, ref: 'ProductOptionCategory'}]})
+  optionCategories: ProductOptionCategory[];
 }
 
 export const ProductSchema = SchemaFactory.createForClass(Product);
