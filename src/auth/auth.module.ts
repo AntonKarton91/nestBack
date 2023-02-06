@@ -6,19 +6,15 @@ import {UserService} from "../user/user.service";
 import {UserModule} from "../user/user.module";
 import {JwtModule} from "@nestjs/jwt";
 import {register} from "tsconfig-paths";
+import {TokenModule} from "../token/token.module";
 
 @Module({
   controllers: [AuthController],
   providers: [AuthService],
   imports: [
       forwardRef(() => UserModule),
-      JwtModule.register({
-        secret: process.env.PRIVATE_KEY || "SECRET",
-        signOptions: {
-            expiresIn: "24h"
-        }
-      })
+      TokenModule
   ],
-    exports: [ AuthService, JwtModule ]
+    exports: [ AuthService ]
 })
 export class AuthModule {}

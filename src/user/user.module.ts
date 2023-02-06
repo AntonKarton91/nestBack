@@ -4,11 +4,13 @@ import { UserService } from './user.service';
 import {MongooseModule} from "@nestjs/mongoose";
 import {User, UserSchema} from "./schemas/user.schema";
 import {AuthModule} from "../auth/auth.module";
+import {BasketModule} from "../basket/basket.module";
 
 @Module({
   imports: [
-    MongooseModule.forFeature([{name: User.name, schema: UserSchema}]),
-    forwardRef(() => AuthModule)
+      BasketModule,
+      MongooseModule.forFeature([{name: User.name, schema: UserSchema}]),
+      forwardRef(() => AuthModule)
   ],
   controllers: [UserController],
   providers: [UserService],

@@ -10,7 +10,7 @@ import { UserModule } from './user/user.module';
 import { ConfigModule } from "@nestjs/config";
 import { MongooseModule } from "@nestjs/mongoose";
 import {FileModule} from "./file/file.module";
-import { UsersModule } from './users/users.module';
+import { TokenModule } from './token/token.module';
 
 @Module({
   imports: [
@@ -25,7 +25,7 @@ import { UsersModule } from './users/users.module';
     FileModule,
     ServeStaticModule.forRoot({rootPath: path.resolve(__dirname, 'static'),
     }),
-    UsersModule,
+    TokenModule,
   ],
   controllers: [AppController],
   providers: [AppService],

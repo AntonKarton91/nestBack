@@ -1,46 +1,66 @@
 import {HttpException, HttpStatus, Injectable, UnauthorizedException} from '@nestjs/common';
-import {AuthDto} from "./dto/auth.dto";
 import {UserService} from "../user/user.service";
-import {JwtService} from "@nestjs/jwt";
 import * as bcrypt from "bcrypt"
 import {CreateUserDto} from "../user/dto/createUser.dto";
-import {User, UserRoleType} from "../user/schemas/user.schema";
+import {TokenService} from "../token/token.service";
+import {Request, Response} from "express";
 
 
 @Injectable()
 export class AuthService {
 
-    constructor(private userService: UserService,
-                private jwtService: JwtService) {
-    }
+    constructor(
+        private userService: UserService,
+        private tokenService: TokenService
+    ) {}
 
-    async login(dto: CreateUserDto) {
+    async login(res: Response, dto: CreateUserDto) {
         const user = await this.validateUser(dto)
-        return this.generateToken(user)
+        const tokens = await this.tokenService.generateToken(user)
+        await this.tokenService.saveToken(user, tokens.refreshToken)
+        res.cookie('refreshToken', tokens.refreshToken, {maxAge: 30 * 60 * 60 * 1000, httpOnly: true})
+        return {
+            ...tokens
+        }
     }
 
-    async  register(dto: CreateUserDto) {
-        const candidate = await this.userService.getUserByEmail(dto.userEmail)
+    async  register(res: Response, dto: CreateUserDto) {
+        const candidate = await this.userService.getUserByEmail(dto.email)
         if (candidate) {
             throw new HttpException("Пользователь с таким email уже существует", HttpStatus.BAD_REQUEST)
         }
-        const passwordHash = await bcrypt.hash(dto.userPassword, 5)
-        const user = await this.userService.createUser({...dto, userPassword: passwordHash})
-        return this.generateToken(user)
+        const passwordHash = await bcrypt.hash(dto.password, 5)
+        const user = await this.userService.createUser({...dto, password: passwordHash})
+        const tokens = await this.tokenService.generateToken(user)
+        await this.tokenService.saveToken(user.id, tokens.refreshToken)
+        res.cookie('refreshToken', tokens.refreshToken, {maxAge: 30 * 60 * 60 * 1000, httpOnly: true})
+        return {
+            ...tokens
+        }
     }
 
-    private async generateToken(user: User) {
-        const payload = { email: user.userEmail, password: user.userPassword, role: UserRoleType.CUSTOMER }
+    async logout(refreshToken) {
+        const token = await this.tokenService.deleteToken(refreshToken)
+        return token
+    }
+
+    async refresh(req: Request, res: Response) {
+        const { refreshToken } = req.cookies;
+
+        const tokens = await this.tokenService.generateToken(user)
+        await this.tokenService.saveToken(user, tokens.refreshToken)
+        res.cookie('refreshToken', tokens.refreshToken, {maxAge: 30 * 60 * 60 * 1000, httpOnly: true})
         return {
-            token: this.jwtService.sign(payload)
+            ...tokens
         }
     }
 
     private async validateUser(dto: CreateUserDto) {
-        const user = await this.userService.getUserByEmail(dto.userEmail)
-        const passEquals = await bcrypt.compare(dto.userPassword, user.userPassword)
+        const user = await this.userService.getUserByEmail(dto.email)
+
+        const passEquals = await bcrypt.compare(dto.password, user.password)
         if (user && passEquals) {
-            return user
+            return user._id
         }
         throw new UnauthorizedException({message: "Проверьте имя пользователя и пароль"})
     }

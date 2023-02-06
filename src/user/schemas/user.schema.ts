@@ -1,6 +1,7 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
-import { HydratedDocument } from 'mongoose';
+import {HydratedDocument, ObjectId} from 'mongoose';
 import mongoose from "mongoose";
+import {Basket} from "../../basket/schemas/basket.schema";
 
 export enum UserRoleType  {
     "ADMIN"="Administrator",
@@ -12,16 +13,19 @@ export type UserDocument = HydratedDocument<User>;
 @Schema()
 export class User {
     @Prop({required: true})
-    userName: string;
+    name: string;
 
     @Prop({required: true, unique: true})
-    userEmail: string;
+    email: string;
 
     @Prop({required: true})
-    userPassword: string
+    password: string
 
     @Prop({required: true})
-    userRole: UserRoleType
+    role: UserRoleType
+
+    @Prop({type: mongoose.Schema.Types.ObjectId, ref: 'Basket'})
+    basketId: Basket;
 }
 
 export const UserSchema = SchemaFactory.createForClass(User);
